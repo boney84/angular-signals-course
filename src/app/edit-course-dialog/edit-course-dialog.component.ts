@@ -7,6 +7,7 @@ import {LoadingIndicatorComponent} from "../loading/loading.component";
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
 import {CourseCategoryComboboxComponent} from "../course-category-combobox/course-category-combobox.component";
 import {CourseCategory} from "../models/course-category.model";
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'edit-course-dialog',
@@ -20,6 +21,59 @@ import {CourseCategory} from "../models/course-category.model";
   styleUrl: './edit-course-dialog.component.scss'
 })
 export class EditCourseDialogComponent {
+  dialogRef= inject(MatDialogRef);
+  data: EditCourseDialogData= inject<EditCourseDialogData>(MAT_DIALOG_DATA);
+  fb= inject(FormBuilder);
+  courseService= inject(CoursesService);
 
+  form= this.fb.group({
+    title: [''],
+    longDescription: [''],
+    category:[''],
+    iconUrl: ['']
+  });
 
+  constructor() {
+    console.log(this.data?.course)
+    this.form.patchValue({
+      title: this.data?.course?.title || '',
+      longDescription: this.data?.course?.longDescription || '',
+      category: this.data?.course?.category || '',
+      iconUrl: this.data?.course?.iconUrl || ''})
+  }
+  onClose() {
+    this.dialogRef.close({title:'Hello World'});
+  }
+  
+  onSave() {
+   const courseProps = this.form.value as Partial<Course>;
+    if (this.data.mode === 'update') {
+      this.saveCourse(this.data.course!.id, courseProps);
+  }
+}
+
+  async saveCourse(courseId:string, course: Partial<Course>) {
+    try {
+     const updatedCourse= await this.courseService.saveCourse(courseId, course);
+      this.dialogRef.close(updatedCourse);
+      
+    } catch (error) {
+        console.error('Error saving course:', error);
+        alert('An error occurred while saving the course. Please try again.');
+    }
+   
+  }
+}
+
+export async function openEditCourseDialog(dialog:MatDialog,data: EditCourseDialogData) {
+  const config= new MatDialogConfig();
+  config.width= '400px';
+  config.data= data;
+  config.disableClose= true;
+  config.autoFocus= true;
+
+  const close$ = dialog.open(EditCourseDialogComponent, config).afterClosed();
+  firstValueFrom(close$).then(result => {
+    console.log('Edit Course Dialog closed with result:', result);
+  });
 }
