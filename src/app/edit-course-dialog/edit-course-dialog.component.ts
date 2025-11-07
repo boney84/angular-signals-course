@@ -1,4 +1,4 @@
-import {Component, effect, inject, signal} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialog, MatDialogConfig, MatDialogRef} from "@angular/material/dialog";
 import {Course} from "../models/course.model";
 import {EditCourseDialogData} from "./edit-course-dialog.data.model";
@@ -6,7 +6,6 @@ import {CoursesService} from "../services/courses.service";
 import {LoadingIndicatorComponent} from "../loading/loading.component";
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
 import {CourseCategoryComboboxComponent} from "../course-category-combobox/course-category-combobox.component";
-import {CourseCategory} from "../models/course-category.model";
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -45,12 +44,16 @@ export class EditCourseDialogComponent {
     this.dialogRef.close({title:'Hello World'});
   }
   
-  onSave() {
+  async onSave() {
    const courseProps = this.form.value as Partial<Course>;
     if (this.data.mode === 'update') {
-      this.saveCourse(this.data.course!.id, courseProps);
+     await this.saveCourse(this.data.course!.id, courseProps);
   }
+  else if (this.data.mode === 'create') {
+    await this.createCourse(courseProps);
+   }
 }
+
 
   async saveCourse(courseId:string, course: Partial<Course>) {
     try {
@@ -63,7 +66,23 @@ export class EditCourseDialogComponent {
     }
    
   }
+
+  async createCourse(course: Partial<Course>) {
+  // Implementation for creating a course
+  try{
+  const newCourse= this.courseService.createCourse(course);
+  this.dialogRef.close(newCourse);
+  } 
+  catch (error) {
+    console.error('Error creating course:', error);
+    alert('An error occurred while creating the course. Please try again.');
+  }
 }
+
+
+}
+
+
 
 export async function openEditCourseDialog(dialog:MatDialog,data: EditCourseDialogData) {
   const config= new MatDialogConfig();
@@ -73,7 +92,6 @@ export async function openEditCourseDialog(dialog:MatDialog,data: EditCourseDial
   config.autoFocus= true;
 
   const close$ = dialog.open(EditCourseDialogComponent, config).afterClosed();
-  firstValueFrom(close$).then(result => {
-    console.log('Edit Course Dialog closed with result:', result);
-  });
+  return await firstValueFrom(close$);
 }
+

@@ -1,6 +1,9 @@
+@if(messageSignal())
+{<div class="message-container">
+    <div class="message" [ngClass]="messageSignal()?.severity">
+        {{messageSignal()?.text}}
+        <img src="/assets/icons/close.svg" alt="" class="close" (click)="onClose()" />
+    </div>
+</div>
 
-
-
-
-
-
+}

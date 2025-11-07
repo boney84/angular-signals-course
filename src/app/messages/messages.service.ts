@@ -7,5 +7,13 @@ import {Message, MessageSeverity} from "../models/message.model";
 })
 export class MessagesService {
 
+  #messageSignal= signal<Message | null>(null);
+  message= this.#messageSignal.asReadonly();
 
+  showMessage(severity: MessageSeverity, text: string){
+    this.#messageSignal.set({text, severity});
+  }
+  clearMessage(){
+    this.#messageSignal.set(null);
+  }
 }

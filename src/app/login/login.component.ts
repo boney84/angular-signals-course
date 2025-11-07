@@ -14,6 +14,42 @@ import {FormBuilder, ReactiveFormsModule} from "@angular/forms";
     styleUrl: './login.component.scss'
 })
 export class LoginComponent {
+fb= inject(FormBuilder);
+messagesService= inject(MessagesService);
+authService= inject(AuthService);
+router= inject(Router);
 
+form= this.fb.group({
+    email: [''],
+    password: ['']
+});
+
+async onLogin(){
+    try {
+    const {email, password} = this.form.value;
+    if(!email || !password){
+        this.messagesService.showMessage("error", "Please enter email and password");
+        return;
+    }
+   
+   await this.authService.login(email!, password!).then(()=>{
+        this.router.navigate(['/home']);
+    });
+   
+} catch (error) {
+    console.error("Error during login", error); 
+    this.messagesService.showMessage("error", "Error during login");
+}
+}
+
+async onLogout(){
+    try {
+        await this.authService.logout();
+        this.router.navigate(['/login']);
+    } catch (error) {
+        console.error("Error during logout", error); 
+        this.messagesService.showMessage("error", "Error during logout");
+    }
+}
 
 }
