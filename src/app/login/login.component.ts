@@ -42,14 +42,4 @@ async onLogin(){
 }
 }
 
-async onLogout(){
-    try {
-        await this.authService.logout();
-        this.router.navigate(['/login']);
-    } catch (error) {
-        console.error("Error during logout", error); 
-        this.messagesService.showMessage("error", "Error during logout");
-    }
-}
-
 }

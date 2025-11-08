@@ -11,6 +11,7 @@ import { SkipLoading } from "../loading/skip-loading.component";
   providedIn: "root"
 })
 export class CoursesService {
+  
 
   http = inject(HttpClient);
   env= environment;
@@ -22,6 +23,13 @@ export class CoursesService {
   const response= await firstValueFrom(courses$);
   return response.courses;
  }
+
+  async getCourseById(courseId: string): Promise<Course>  {
+      //   throw new Error("Method not implemented.");
+       const course= this.http.get<Course>(`${this.env.apiRoot}/courses/${courseId}`,{
+    });
+       return firstValueFrom(course);
+   }
 
  async createCourse(course: Partial<Course>):Promise<Course> {
     const createCourse$ = this.http.post<Course>(`${this.env.apiRoot}/courses`, course);

@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, effect, inject, signal} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialog, MatDialogConfig, MatDialogRef} from "@angular/material/dialog";
 import {Course} from "../models/course.model";
 import {EditCourseDialogData} from "./edit-course-dialog.data.model";
@@ -7,6 +7,7 @@ import {LoadingIndicatorComponent} from "../loading/loading.component";
 import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
 import {CourseCategoryComboboxComponent} from "../course-category-combobox/course-category-combobox.component";
 import { firstValueFrom } from 'rxjs';
+import { CourseCategory } from '../models/course-category.model';
 
 @Component({
   selector: 'edit-course-dialog',
@@ -28,17 +29,22 @@ export class EditCourseDialogComponent {
   form= this.fb.group({
     title: [''],
     longDescription: [''],
-    category:[''],
     iconUrl: ['']
   });
 
+  category= signal<CourseCategory>("BEGINNER");
   constructor() {
     console.log(this.data?.course)
     this.form.patchValue({
       title: this.data?.course?.title || '',
       longDescription: this.data?.course?.longDescription || '',
-      category: this.data?.course?.category || '',
-      iconUrl: this.data?.course?.iconUrl || ''})
+      iconUrl: this.data?.course?.iconUrl || ''
+    })
+      this.category.set(this.data?.course?.category?? "BEGINNER");
+
+      effect(() => {
+        console.log("Course Category bidirectional binding:", this.category());
+      });
   }
   onClose() {
     this.dialogRef.close({title:'Hello World'});
@@ -46,6 +52,7 @@ export class EditCourseDialogComponent {
   
   async onSave() {
    const courseProps = this.form.value as Partial<Course>;
+   courseProps.category= this.category();
     if (this.data.mode === 'update') {
      await this.saveCourse(this.data.course!.id, courseProps);
   }

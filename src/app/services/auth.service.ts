@@ -11,13 +11,29 @@ const USER_STORAGE_KEY = 'user';
   providedIn: 'root'
 })
 export class AuthService {
+
 http = inject(HttpClient);
 env= environment;
 #userSignal= signal<User | null>(null);
-usersign= this.#userSignal.asReadonly();
-
+user= this.#userSignal.asReadonly();
 isLoggedIn= computed(()=> !!this.#userSignal());
 
+constructor(){
+  this.loadUserFromStorage();
+  effect(() => {
+    if(this.user()){
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(this.user()));
+    }
+  });
+}
+
+loadUserFromStorage():void {
+  const userJson= localStorage.getItem(USER_STORAGE_KEY);
+  if(userJson){
+    const user: User= JSON.parse(userJson);
+    this.#userSignal.set(user);
+  }
+}
 async login(email:string, password:string):Promise<void> {
     // Simulate an API call to authenticate the user
     const login$= this.http.post<User>(`${this.env.apiRoot}/login`, {email, password});
@@ -28,10 +44,8 @@ async login(email:string, password:string):Promise<void> {
 
 async logout():Promise<void> {
     // Simulate an API call to log out the user
-    const logout$= this.http.post<void>(`${this.env.apiRoot}/logout`, {});
-    await firstValueFrom(logout$);
-    this.#userSignal.set(null);
     localStorage.removeItem(USER_STORAGE_KEY);  
+    this.#userSignal.set(null);
 }
 
 }
