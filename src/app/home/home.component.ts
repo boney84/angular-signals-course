@@ -1,4 +1,5 @@
-import {Component, computed, effect, inject, signal} from '@angular/core';
+import {Component, computed, effect, inject, signal, viewChild} from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import {CoursesService} from "../services/courses.service";
 import {Course, sortCoursesBySeqNo} from "../models/course.model";
 import {MatTab, MatTabGroup} from "@angular/material/tabs";
@@ -25,7 +26,8 @@ export class HomeComponent {
     dialog= inject(MatDialog);
     loadingService= inject(LoadingService);
     messagesService= inject(MessagesService);
-    
+     beginnersList = viewChild<CoursesCardListComponent>('beginnersList');
+
     beginnerCourses= computed(()=>{
         return this.#courses().filter(c=> c.category === "BEGINNER")
     });
@@ -35,11 +37,19 @@ export class HomeComponent {
     });
 
     constructor() {
+        const courses$= toObservable(this.#courses);
+       
+        effect(()=>{
+            //console.log("Beginners lists",this.beginnersList());
+            console.log("courses observable", courses$);
+        });
+        
         effect(()=> {
-            console.log("Beginner Courses: ", this.beginnerCourses())
-            console.log("Advanced Courses", this.advancedCourses())
+            // console.log("Beginner Courses: ", this.beginnerCourses())
+            // console.log("Advanced Courses", this.advancedCourses())
         }); 
-        this.loadAllCourses().then(()=>console.log("Courses loaded", this.#courses()));
+        this.loadAllCourses()
+        .then(()=>console.log("Courses loaded", this.#courses()));
     }
 
       async loadAllCourses(){
